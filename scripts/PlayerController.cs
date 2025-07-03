@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
-using Random = UnityEngine.Random;
+using Random = System.Random;
 
 
 public struct FrameInput
@@ -44,15 +44,16 @@ public class PlayerController : MonoBehaviour, IPlayerController
 	// keybinds
 	private int i;
 	private Dictionary<int, KeyCode> dict = new Dictionary<int, KeyCode>();
-
-
-
+	private KeyCode ChangeSide = KeyCode.Tab;
+	public Transform _gm;
+	
 	void Awake()
 	{
 		_rb = GetComponent<Rigidbody2D>();
 		_col = GetComponent<CapsuleCollider2D>();
 		
 		_cachedQueryStartInColliders = Physics2D.queriesStartInColliders;
+		Spawn();
 	}
     void Start()
     {
@@ -70,18 +71,32 @@ public class PlayerController : MonoBehaviour, IPlayerController
 	    
 	    dict.Add(i++, KeyCode.Minus);
 	    dict.Add(i++, KeyCode.Plus);
+
+
+	    
     }
 
-    //void ChangeKeyBind(int key)
-    //{
-	//    int a = -1;
-//	    switch (key):
-//		    case 0:
-//				Random rnd = new Random();
-//			    a = rnd.Next(i);
-//			    while (dict.ContainsKey(dict[a]))
-//				    a = rnd.Next(i);
-  //}
+    void ChangeKeyBind(int key)
+    {
+	    int a = -1;
+		Random rnd = new Random();
+	    
+		a = rnd.Next(i);
+	    while (dict.ContainsValue(dict[a]))
+		    a = rnd.Next(i);
+	    switch (key)
+	    {
+		    case 0:
+			    rightKey = dict[a];
+			    break;
+		    case 1: 
+			    leftKey = dict[a];
+				break;
+		    case 2: 
+			    jumpKey = dict[a];
+				break;
+	    }
+    }
     
     // Update is called once per frame
     void Update()
@@ -98,6 +113,8 @@ public class PlayerController : MonoBehaviour, IPlayerController
 	    HandleGravity();
             
 	    ApplyMovement();
+	    checkHeight();
+	    checkCamera();
     }
 
     private void CheckInput()
@@ -228,6 +245,27 @@ public class PlayerController : MonoBehaviour, IPlayerController
     {
 	    if (_stats == null)
 		    Debug.LogWarning("Please assign a ScriptableStats asset to the Player Controller's Stats slot", this);
+    }
+
+	private void checkHeight()
+	{
+		if (_rb.position.y <= 0f)
+			Spawn();
+	}
+    private void Spawn()
+    {
+	    _rb.MovePosition(new Vector2(_gm.position.x, _gm.position.y));
+	    _rb.position = _gm.position;
+    }
+
+    private void checkCamera()
+    {
+	    Vector3 screenPos = Camera.main.WorldToViewportPoint(_rb.position);
+	    if (screenPos.x >= 0.75)
+	    {
+		    Vector3 camera = Camera.main.transform.position;
+		    Camera.main.transform.position += new Vector3(camera.x + 1, camera.y, 0);
+	    }
     }
 }
 
