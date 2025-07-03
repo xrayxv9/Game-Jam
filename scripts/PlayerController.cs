@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using Random = System.Random;
+using UnityEngine.SceneManagement;
 
 
 public struct FrameInput
@@ -44,8 +45,12 @@ public class PlayerController : MonoBehaviour, IPlayerController
 	// keybinds
 	private int i;
 	private Dictionary<int, KeyCode> dict = new Dictionary<int, KeyCode>();
-	private KeyCode ChangeSide = KeyCode.Tab;
+	private KeyCode changeSideKey = KeyCode.Tab;
 	public Transform _gm;
+
+	private int currentLevel = 0;
+
+	private bool currentNormal;
 	
 	void Awake()
 	{
@@ -69,22 +74,25 @@ public class PlayerController : MonoBehaviour, IPlayerController
 		    dict.Add(i++, k);
 	    }
 	    
-	    dict.Add(i++, KeyCode.Minus);
-	    dict.Add(i++, KeyCode.Plus);
-
-
+	    dict.Add(i++, KeyCode.Space);
 	    
     }
 
-    void ChangeKeyBind(int key)
+    public void ChangeKeyBind(int key)
     {
 	    int a = -1;
 		Random rnd = new Random();
-	    
-		a = rnd.Next(i);
-	    while (dict.ContainsValue(dict[a]))
+		Debug.Log("passage dans le keyBind change ");
+		KeyCode k;
+
+	    while (true)
+		{
 		    a = rnd.Next(i);
-	    switch (key)
+			k = dict[a];
+			if (k != rightKey && k != leftKey && k != jumpKey)
+				break ;
+		}
+		switch (key)
 	    {
 		    case 0:
 			    rightKey = dict[a];
@@ -96,6 +104,7 @@ public class PlayerController : MonoBehaviour, IPlayerController
 			    jumpKey = dict[a];
 				break;
 	    }
+		Debug.Log("touche : "+ dict[a]);
     }
     
     // Update is called once per frame
@@ -104,6 +113,7 @@ public class PlayerController : MonoBehaviour, IPlayerController
 	    _time += Time.deltaTime;
 		CheckInput();
     }
+
     void FixedUpdate() 
     {
 	    CheckCollisions();
@@ -140,6 +150,9 @@ public class PlayerController : MonoBehaviour, IPlayerController
 		    _jumpToConsume = true;
 		    _timeJumpWasPressed = _time;
 	    }
+
+		if (Input.GetKeyDown(changeSideKey))
+			ChangeSide();
 	    
     }
     
@@ -293,6 +306,16 @@ public class PlayerController : MonoBehaviour, IPlayerController
 			cam.transform.position = Vector3.Lerp(cam.transform.position, targetPos, Time.deltaTime * smoothSpeed);
 		}
 
+	}
+
+	private void ChangeSide()
+	{
+		if (currentNormal)
+			currentNormal = false;
+		else
+			currentNormal = true;
+
+		SceneManager.LoadScene("Level1Backstage");
 	}
 }
 
