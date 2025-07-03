@@ -196,7 +196,6 @@ public class PlayerController : MonoBehaviour, IPlayerController
 	    if (!_jumpToConsume && !HasBufferedJump) 
 		    return;
 		
-	    Debug.Log("grounded : " + _grounded + " Can Use coyote : " + CanUseCoyote);
 	    if (_grounded || CanUseCoyote) ExcecuteJump();
 	    
 	    _jumpToConsume = false;
@@ -204,7 +203,6 @@ public class PlayerController : MonoBehaviour, IPlayerController
 
     private void ExcecuteJump()
     {
-	    Debug.Log("jumped");
 	    _endedJumpEarly = false;
 	    _timeJumpWasPressed = 0;
 	    _bufferedJumpUsable = false;
@@ -241,12 +239,6 @@ public class PlayerController : MonoBehaviour, IPlayerController
 
     private void ApplyMovement() => _rb.velocity = _FrameVelocity;
 
-    private void OnValidate()
-    {
-	    if (_stats == null)
-		    Debug.LogWarning("Please assign a ScriptableStats asset to the Player Controller's Stats slot", this);
-    }
-
 	private void checkHeight()
 	{
 		if (_rb.position.y <= 0f)
@@ -258,15 +250,50 @@ public class PlayerController : MonoBehaviour, IPlayerController
 	    _rb.position = _gm.position;
     }
 
+	public Camera cam;
+	public float smoothSpeed = 5f;
+	private float leftThreshold = 0.40f;
+	private float rightThreshold = 0.60f;
+	private float topThreshold = 0.60f;
+	private float botThreshold = 0.40f;
+
+
     private void checkCamera()
     {
-	    Vector3 screenPos = Camera.main.WorldToViewportPoint(_rb.position);
-	    if (screenPos.x >= 0.75)
-	    {
-		    Vector3 camera = Camera.main.transform.position;
-		    Camera.main.transform.position += new Vector3(camera.x + 1, camera.y, 0);
-	    }
-    }
+		Vector3 screenPos = cam.WorldToViewportPoint(_rb.position);
+		float cameraWorldWidth = cam.orthographicSize * 2f * cam.aspect;
+
+		if (screenPos.x > rightThreshold)
+		{
+			float deltaPercent = screenPos.x - rightThreshold;
+			float deltaWorld = deltaPercent * cameraWorldWidth;
+			Vector3 targetPos = cam.transform.position + new Vector3(deltaWorld, 0, 0);
+			cam.transform.position = Vector3.Lerp(cam.transform.position, targetPos, Time.deltaTime * smoothSpeed);
+		}
+		else if (screenPos.x < leftThreshold)
+		{
+			float deltaPercent = screenPos.x - leftThreshold;
+			float deltaWorld = deltaPercent * cameraWorldWidth;
+			Vector3 targetPos = cam.transform.position + new Vector3(deltaWorld, 0, 0);
+			cam.transform.position = Vector3.Lerp(cam.transform.position, targetPos, Time.deltaTime * smoothSpeed);
+		}
+
+		if (screenPos.y > topThreshold)
+		{
+			float deltaPercent = screenPos.y - topThreshold;
+			float deltaWorld = deltaPercent * cameraWorldWidth;
+			Vector3 targetPos = cam.transform.position + new Vector3(0, deltaWorld, 0);
+			cam.transform.position = Vector3.Lerp(cam.transform.position, targetPos, Time.deltaTime * smoothSpeed);
+		}
+		else if (screenPos.y < botThreshold)
+		{
+			float deltaPercent = screenPos.y - botThreshold;
+			float deltaWorld = deltaPercent * cameraWorldWidth;
+			Vector3 targetPos = cam.transform.position + new Vector3(0, deltaWorld, 0);
+			cam.transform.position = Vector3.Lerp(cam.transform.position, targetPos, Time.deltaTime * smoothSpeed);
+		}
+
+	}
 }
 
 
