@@ -45,7 +45,6 @@ public class PlayerController : MonoBehaviour, IPlayerController
 	// keybinds
 	private int i;
 	private Dictionary<int, KeyCode> dict = new Dictionary<int, KeyCode>();
-	private KeyCode changeSideKey = KeyCode.Tab;
 	public Transform _gm;
 
 	private int currentLevel = 0;
@@ -58,7 +57,6 @@ public class PlayerController : MonoBehaviour, IPlayerController
 		_col = GetComponent<CapsuleCollider2D>();
 		
 		_cachedQueryStartInColliders = Physics2D.queriesStartInColliders;
-		Spawn();
 	}
     void Start()
     {
@@ -150,10 +148,6 @@ public class PlayerController : MonoBehaviour, IPlayerController
 		    _jumpToConsume = true;
 		    _timeJumpWasPressed = _time;
 	    }
-
-		if (Input.GetKeyDown(changeSideKey))
-			ChangeSide();
-	    
     }
     
     // Collide 
@@ -306,16 +300,6 @@ public class PlayerController : MonoBehaviour, IPlayerController
 			cam.transform.position = Vector3.Lerp(cam.transform.position, targetPos, Time.deltaTime * smoothSpeed);
 		}
 
-	}
-
-	private void ChangeSide()
-	{
-		if (currentNormal)
-			currentNormal = false;
-		else
-			currentNormal = true;
-
-		SceneManager.LoadScene("Level1Backstage");
 	}
 }
 
