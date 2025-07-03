@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
-using Random = UnityEngine.Random;
+using Random = System.Random;
 
 
 public struct FrameInput
@@ -44,15 +44,16 @@ public class PlayerController : MonoBehaviour, IPlayerController
 	// keybinds
 	private int i;
 	private Dictionary<int, KeyCode> dict = new Dictionary<int, KeyCode>();
-
-
-
+	private KeyCode ChangeSide = KeyCode.Tab;
+	public Transform _gm;
+	
 	void Awake()
 	{
 		_rb = GetComponent<Rigidbody2D>();
 		_col = GetComponent<CapsuleCollider2D>();
 		
 		_cachedQueryStartInColliders = Physics2D.queriesStartInColliders;
+		Spawn();
 	}
     void Start()
     {
@@ -70,18 +71,32 @@ public class PlayerController : MonoBehaviour, IPlayerController
 	    
 	    dict.Add(i++, KeyCode.Minus);
 	    dict.Add(i++, KeyCode.Plus);
+
+
+	    
     }
 
-    //void ChangeKeyBind(int key)
-    //{
-	//    int a = -1;
-//	    switch (key):
-//		    case 0:
-//				Random rnd = new Random();
-//			    a = rnd.Next(i);
-//			    while (dict.ContainsKey(dict[a]))
-//				    a = rnd.Next(i);
-  //}
+    void ChangeKeyBind(int key)
+    {
+	    int a = -1;
+		Random rnd = new Random();
+	    
+		a = rnd.Next(i);
+	    while (dict.ContainsValue(dict[a]))
+		    a = rnd.Next(i);
+	    switch (key)
+	    {
+		    case 0:
+			    rightKey = dict[a];
+			    break;
+		    case 1: 
+			    leftKey = dict[a];
+				break;
+		    case 2: 
+			    jumpKey = dict[a];
+				break;
+	    }
+    }
     
     // Update is called once per frame
     void Update()
@@ -98,6 +113,8 @@ public class PlayerController : MonoBehaviour, IPlayerController
 	    HandleGravity();
             
 	    ApplyMovement();
+	    checkHeight();
+	    checkCamera();
     }
 
     private void CheckInput()
@@ -179,7 +196,6 @@ public class PlayerController : MonoBehaviour, IPlayerController
 	    if (!_jumpToConsume && !HasBufferedJump) 
 		    return;
 		
-	    Debug.Log("grounded : " + _grounded + " Can Use coyote : " + CanUseCoyote);
 	    if (_grounded || CanUseCoyote) ExcecuteJump();
 	    
 	    _jumpToConsume = false;
@@ -187,7 +203,6 @@ public class PlayerController : MonoBehaviour, IPlayerController
 
     private void ExcecuteJump()
     {
-	    Debug.Log("jumped");
 	    _endedJumpEarly = false;
 	    _timeJumpWasPressed = 0;
 	    _bufferedJumpUsable = false;
@@ -224,11 +239,61 @@ public class PlayerController : MonoBehaviour, IPlayerController
 
     private void ApplyMovement() => _rb.velocity = _FrameVelocity;
 
-    private void OnValidate()
+	private void checkHeight()
+	{
+		if (_rb.position.y <= 0f)
+			Spawn();
+	}
+    private void Spawn()
     {
-	    if (_stats == null)
-		    Debug.LogWarning("Please assign a ScriptableStats asset to the Player Controller's Stats slot", this);
+	    _rb.MovePosition(new Vector2(_gm.position.x, _gm.position.y));
+	    _rb.position = _gm.position;
     }
+
+	public Camera cam;
+	public float smoothSpeed = 5f;
+	private float leftThreshold = 0.40f;
+	private float rightThreshold = 0.60f;
+	private float topThreshold = 0.60f;
+	private float botThreshold = 0.40f;
+
+
+    private void checkCamera()
+    {
+		Vector3 screenPos = cam.WorldToViewportPoint(_rb.position);
+		float cameraWorldWidth = cam.orthographicSize * 2f * cam.aspect;
+
+		if (screenPos.x > rightThreshold)
+		{
+			float deltaPercent = screenPos.x - rightThreshold;
+			float deltaWorld = deltaPercent * cameraWorldWidth;
+			Vector3 targetPos = cam.transform.position + new Vector3(deltaWorld, 0, 0);
+			cam.transform.position = Vector3.Lerp(cam.transform.position, targetPos, Time.deltaTime * smoothSpeed);
+		}
+		else if (screenPos.x < leftThreshold)
+		{
+			float deltaPercent = screenPos.x - leftThreshold;
+			float deltaWorld = deltaPercent * cameraWorldWidth;
+			Vector3 targetPos = cam.transform.position + new Vector3(deltaWorld, 0, 0);
+			cam.transform.position = Vector3.Lerp(cam.transform.position, targetPos, Time.deltaTime * smoothSpeed);
+		}
+
+		if (screenPos.y > topThreshold)
+		{
+			float deltaPercent = screenPos.y - topThreshold;
+			float deltaWorld = deltaPercent * cameraWorldWidth;
+			Vector3 targetPos = cam.transform.position + new Vector3(0, deltaWorld, 0);
+			cam.transform.position = Vector3.Lerp(cam.transform.position, targetPos, Time.deltaTime * smoothSpeed);
+		}
+		else if (screenPos.y < botThreshold)
+		{
+			float deltaPercent = screenPos.y - botThreshold;
+			float deltaWorld = deltaPercent * cameraWorldWidth;
+			Vector3 targetPos = cam.transform.position + new Vector3(0, deltaWorld, 0);
+			cam.transform.position = Vector3.Lerp(cam.transform.position, targetPos, Time.deltaTime * smoothSpeed);
+		}
+
+	}
 }
 
 
