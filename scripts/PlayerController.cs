@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using Random = System.Random;
+using UnityEngine.SceneManagement;
 
 
 public struct FrameInput
@@ -33,7 +34,7 @@ public class PlayerController : MonoBehaviour, IPlayerController
 	private KeyCode leftKey = KeyCode.A;
 	private KeyCode jumpKey = KeyCode.Space;
 	private bool _cachedQueryStartInColliders;
-	private float _time;
+	public float _time;
 	
 	// interfaces
 	
@@ -44,19 +45,40 @@ public class PlayerController : MonoBehaviour, IPlayerController
 	// keybinds
 	private int i;
 	private Dictionary<int, KeyCode> dict = new Dictionary<int, KeyCode>();
-	private KeyCode ChangeSide = KeyCode.Tab;
 	public Transform _gm;
+
+	private int currentLevel = 0;
+
+	private bool currentNormal;
+	private KeyCode changeScene = KeyCode.Tab;
 	
+	// code moche mais on  a plus le temps 
+	[SerializeField] private GameObject tp;
+	private TPBloque tpblock;
+
+	// show les keybinds
+	private bool showKeyBind;
+	private int showWhichKeybind;
+	private bool NeedsGen;
+	private int KeyBindShowX;
+	private int KeyBindShowY;
+	private float _Creationtime;
+
+	// active
+	private bool _isActive = true;
+	public Vector2 tp_pos;
+
 	void Awake()
 	{
 		_rb = GetComponent<Rigidbody2D>();
 		_col = GetComponent<CapsuleCollider2D>();
 		
 		_cachedQueryStartInColliders = Physics2D.queriesStartInColliders;
-		Spawn();
+		tp_pos = tp.transform.position; 
 	}
     void Start()
     {
+		DontDestroyOnLoad(gameObject);
 	    i = 0;
 	    _time += Time.deltaTime;
 	    for (KeyCode k = KeyCode.A; k <= KeyCode.Z; k++)
@@ -69,22 +91,36 @@ public class PlayerController : MonoBehaviour, IPlayerController
 		    dict.Add(i++, k);
 	    }
 	    
-	    dict.Add(i++, KeyCode.Minus);
-	    dict.Add(i++, KeyCode.Plus);
-
-
+	    dict.Add(i++, KeyCode.Space);
 	    
     }
 
-    void ChangeKeyBind(int key)
+	void OnCollisionStay2D( Collision2D collision )
+	{
+		if (collision.gameObject == tp)
+		{
+			if (Input.GetKey(changeScene))
+			{
+				tpblock = tp.GetComponent<TPBloque>();
+				tpblock.ChangeSide(gameObject);
+			}
+		}
+	}
+
+    public void ChangeKeyBind(int key)
     {
 	    int a = -1;
 		Random rnd = new Random();
-	    
-		a = rnd.Next(i);
-	    while (dict.ContainsValue(dict[a]))
+		KeyCode k;
+
+	    while (true)
+		{
 		    a = rnd.Next(i);
-	    switch (key)
+			k = dict[a];
+			if (k != rightKey && k != leftKey && k != jumpKey)
+				break ;
+		}
+		switch (key)
 	    {
 		    case 0:
 			    rightKey = dict[a];
@@ -96,6 +132,11 @@ public class PlayerController : MonoBehaviour, IPlayerController
 			    jumpKey = dict[a];
 				break;
 	    }
+		// Debug.Log("touche : "+ dict[a]);
+		showKeyBind = true;
+		showWhichKeybind = a;
+		NeedsGen = true;
+		_Creationtime = _time;
     }
     
     // Update is called once per frame
@@ -103,18 +144,31 @@ public class PlayerController : MonoBehaviour, IPlayerController
     {
 	    _time += Time.deltaTime;
 		CheckInput();
+		if (12 - _time <= 0)
+		{
+			Debug.Log("you lost");
+			Spawn();
+		}
     }
+
     void FixedUpdate() 
     {
-	    CheckCollisions();
+		if (_isActive)
+		{
+			CheckCollisions();
 
-	    HandleJump();
-	    HandleDirection();
-	    HandleGravity();
-            
-	    ApplyMovement();
-	    checkHeight();
-	    checkCamera();
+			HandleJump();
+			HandleDirection();
+			HandleGravity();
+				
+			ApplyMovement();
+			checkHeight();
+			checkCamera();
+		}
+		else
+		{
+			handleNonActive();
+		}
     }
 
     private void CheckInput()
@@ -140,7 +194,6 @@ public class PlayerController : MonoBehaviour, IPlayerController
 		    _jumpToConsume = true;
 		    _timeJumpWasPressed = _time;
 	    }
-	    
     }
     
     // Collide 
@@ -248,6 +301,7 @@ public class PlayerController : MonoBehaviour, IPlayerController
     {
 	    _rb.MovePosition(new Vector2(_gm.position.x, _gm.position.y));
 	    _rb.position = _gm.position;
+		_time = 0;
     }
 
 	public Camera cam;
@@ -293,6 +347,49 @@ public class PlayerController : MonoBehaviour, IPlayerController
 			cam.transform.position = Vector3.Lerp(cam.transform.position, targetPos, Time.deltaTime * smoothSpeed);
 		}
 
+	}
+
+	private void OnGUI()
+	{
+
+		if (showKeyBind)
+		{
+			if (NeedsGen)
+			{
+				int width = Screen.width;
+				int height = Screen.height; 
+				Random rnd = new Random();
+				KeyBindShowX = rnd.Next(width);
+				KeyBindShowY = rnd.Next(height);
+				NeedsGen = false;
+			}
+
+			GUI.Label(new Rect(KeyBindShowX, KeyBindShowY, 400, 100), $"la touche est : {dict[showWhichKeybind]}");
+			Debug.Log($"time : {_time - _Creationtime}");
+			if (_time - _Creationtime>= 0.75)
+				showKeyBind = false;
+		}
+		GUIStyle style = new GUIStyle(GUI.skin.label);
+		style.fontSize = 32; // Choisis la taille que tu veux
+		GUI.Label(new Rect(0, 0, 100, 100), $"{(60 - _time).ToString("F2")}", style);
+	}
+
+	public void loadScene( int index )
+	{
+		DontDestroyOnLoad(gameObject);
+		// gameObject.SetActive(false);
+		_isActive = false;
+		gameObject.tag = "cpy";
+		
+		SceneManager.LoadScene(index);
+	}
+	private void handleNonActive()
+	{
+		GameObject ActivePlayer = GameObject.FindWithTag("Player");
+		PlayerController pc = ActivePlayer.GetComponent<PlayerController>();
+		ActivePlayer.transform.position = new Vector2(pc.tp.transform.position.x, pc.tp.transform.position.y + 1.7f);
+		pc._time = _time;
+		Destroy(gameObject);
 	}
 }
 
