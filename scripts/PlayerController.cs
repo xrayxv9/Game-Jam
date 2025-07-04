@@ -143,7 +143,7 @@ public class PlayerController : MonoBehaviour, IPlayerController
     {
 	    _time += Time.deltaTime;
 		CheckInput();
-		if (12 - _time <= 0)
+		if (60 - _time <= 0)
 		{
 			Debug.Log("you lost");
 			Spawn();
@@ -294,10 +294,14 @@ public class PlayerController : MonoBehaviour, IPlayerController
 	private void checkHeight()
 	{
 		if (_rb.position.y <= 0f)
+		{
+			Debug.Log("Here");
 			Spawn();
+		}
 	}
     private void Spawn()
     {
+		Debug.Log("Spaned");
 	    _rb.MovePosition(new Vector2(_gm.position.x, _gm.position.y));
 	    _rb.position = _gm.position;
 		_time = 0;
