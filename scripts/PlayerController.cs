@@ -132,7 +132,6 @@ public class PlayerController : MonoBehaviour, IPlayerController
 			    jumpKey = dict[a];
 				break;
 	    }
-		// Debug.Log("touche : "+ dict[a]);
 		showKeyBind = true;
 		showWhichKeybind = a;
 		NeedsGen = true;
@@ -365,7 +364,6 @@ public class PlayerController : MonoBehaviour, IPlayerController
 			}
 
 			GUI.Label(new Rect(KeyBindShowX, KeyBindShowY, 400, 100), $"la touche est : {dict[showWhichKeybind]}");
-			Debug.Log($"time : {_time - _Creationtime}");
 			if (_time - _Creationtime>= 0.75)
 				showKeyBind = false;
 		}
