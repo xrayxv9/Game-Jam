@@ -12,15 +12,32 @@ public class TPBloque : MonoBehaviour
         _sceneIndex = SceneManager.GetActiveScene().buildIndex;
     }
 
-    // Update is called once per frame
-
-	private void ChangeSide()
+	public void ChangeSide( GameObject player )
 	{
+		PlayerController control = player.GetComponent<PlayerController>();
+		// float time = control._time;
+		// Transform position = player.transform;
 		if (_sceneIndex % 2 == 0)
 			_sceneIndex++;
 		else
 			_sceneIndex--;
-
-		SceneManager.LoadScene(_sceneIndex);
+		control.loadScene(_sceneIndex);
+		// SceneManager.LoadScene(_sceneIndex);
+		// Scene newScene = SceneManager.GetActiveScene();
+		// GameObject[] roots = newScene.GetRootGameObjects();
+		// GameObject level = null;
+		//
+		// foreach (var root in roots)
+		// {
+		// 	if (root.name == "level")
+		// 	{
+		// 		level = root;
+		// 		break;
+		// 	}
+		// }
+		// Transform newPlayer = level.transform.Find("Player");
+		// PlayerController playerScript = newPlayer.GetComponent<PlayerController>();
+		// playerScript._time = time;
+		// player.transform.position = new Vector2(playerScript._gm.position.x, playerScript._gm.position.y + 1.7f);
 	}
 }

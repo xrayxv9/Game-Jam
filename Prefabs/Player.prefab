@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 6344493556934789664}
   m_Layer: 0
   m_Name: Player
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -83,7 +83,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _stats: {fileID: 11400000, guid: 95154ef0dcf34a44087d61ecdd9936f9, type: 2}
+  _time: 0
   _gm: {fileID: 0}
+  tp: {fileID: 4156928364818823302, guid: ef5377ef1453788c6b7ea1863d759617, type: 3}
+  tp_pos: {x: 0, y: 0}
   cam: {fileID: 0}
   smoothSpeed: 5
 --- !u!50 &6344493556934789664
