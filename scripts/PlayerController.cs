@@ -68,6 +68,9 @@ public class PlayerController : MonoBehaviour, IPlayerController
 	private bool _isActive = true;
 	public Vector2 tp_pos;
 
+	// time to finish
+	public int timeToFinish = 60;
+
 	void Awake()
 	{
 		_rb = GetComponent<Rigidbody2D>();
@@ -78,7 +81,6 @@ public class PlayerController : MonoBehaviour, IPlayerController
 	}
     void Start()
     {
-		DontDestroyOnLoad(gameObject);
 	    i = 0;
 	    _time += Time.deltaTime;
 	    for (KeyCode k = KeyCode.A; k <= KeyCode.Z; k++)
@@ -143,7 +145,7 @@ public class PlayerController : MonoBehaviour, IPlayerController
     {
 	    _time += Time.deltaTime;
 		CheckInput();
-		if (60 - _time <= 0)
+		if (timeToFinish - _time <= 0)
 		{
 			Debug.Log("you lost");
 			Spawn();
@@ -373,7 +375,7 @@ public class PlayerController : MonoBehaviour, IPlayerController
 		}
 		GUIStyle style = new GUIStyle(GUI.skin.label);
 		style.fontSize = 32; // Choisis la taille que tu veux
-		GUI.Label(new Rect(0, 0, 100, 100), $"{(60 - _time).ToString("F2")}", style);
+		GUI.Label(new Rect(0, 0, 100, 100), $"{(timeToFinish - _time).ToString("F2")}", style);
 	}
 
 	public void loadScene( int index )

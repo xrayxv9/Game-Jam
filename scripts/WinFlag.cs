@@ -6,6 +6,7 @@ using UnityEngine.SceneManagement;
 public class WinFlag : MonoBehaviour
 {
 	private int _sceneIndex;
+	public int win = 1;
     // Start is called before the first frame update
     void Start()
     {
@@ -18,9 +19,9 @@ public class WinFlag : MonoBehaviour
 		if (collision.gameObject.CompareTag("Player"))
 		{
 			if (_sceneIndex % 2 == 0)
-				_sceneIndex += 2;
+				_sceneIndex += win * 2;
 			else
-				_sceneIndex += 1;
+				_sceneIndex += win;
 			SceneManager.LoadScene(_sceneIndex);
 		}
 	}
